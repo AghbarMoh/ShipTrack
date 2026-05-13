@@ -1,0 +1,217 @@
+package com.shiptrack.services;
+
+import com.shiptrack.database.DatabaseManager;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+// AdminService handles all admin-related operations
+// including registering users, removing users, and managing password policy
+public class AdminService {
+
+    private AuthService authService = new AuthService();
+
+    // Registers a new dispatcher in the system
+    public boolean registerDispatcher(String username, String password,
+                                      String fullName, String idNumber, String contactNumber) {
+        // Validate password against policy
+        if (!authService.isPasswordValid(password)) {
+            return false;
+        }
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            // Hash the password before storing
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+            // Insert into users table
+            String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'dispatcher')";
+            PreparedStatement userStmt = conn.prepareStatement(userSql);
+            userStmt.setString(1, username);
+            userStmt.setString(2, hashedPassword);
+            userStmt.executeUpdate();
+
+            // Get the new user's ID
+            ResultSet generatedKeys = userStmt.getGeneratedKeys();
+            int userId = generatedKeys.getInt(1);
+
+            // Insert into dispatchers table
+            String dispSql = "INSERT INTO dispatchers (user_id, full_name, id_number, contact_number) VALUES (?, ?, ?, ?)";
+            PreparedStatement dispStmt = conn.prepareStatement(dispSql);
+            dispStmt.setInt(1, userId);
+            dispStmt.setString(2, fullName);
+            dispStmt.setString(3, idNumber);
+            dispStmt.setString(4, contactNumber);
+            dispStmt.executeUpdate();
+
+            System.out.println("Dispatcher registered successfully.");
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("Error registering dispatcher: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Registers a new delivery person in the system
+    public boolean registerDeliveryPersonnel(String username, String password,
+                                             String fullName, String idNumber, String contactNumber) {
+        // Validate password against policy
+        if (!authService.isPasswordValid(password)) {
+            return false;
+        }
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            // Hash the password before storing
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+            // Insert into users table
+            String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'delivery')";
+            PreparedStatement userStmt = conn.prepareStatement(userSql);
+            userStmt.setString(1, username);
+            userStmt.setString(2, hashedPassword);
+            userStmt.executeUpdate();
+
+            // Get the new user's ID
+            ResultSet generatedKeys = userStmt.getGeneratedKeys();
+            int userId = generatedKeys.getInt(1);
+
+            // Insert into delivery_personnel table
+            String delSql = "INSERT INTO delivery_personnel (user_id, full_name, id_number, contact_number) VALUES (?, ?, ?, ?)";
+            PreparedStatement delStmt = conn.prepareStatement(delSql);
+            delStmt.setInt(1, userId);
+            delStmt.setString(2, fullName);
+            delStmt.setString(3, idNumber);
+            delStmt.setString(4, contactNumber);
+            delStmt.executeUpdate();
+
+            System.out.println("Delivery personnel registered successfully.");
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("Error registering delivery personnel: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Removes a user from the system by username
+    public boolean removeUser(String username) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            // Get user id and role first
+            String selectSql = "SELECT id, role FROM users WHERE username = ?";
+            PreparedStatement selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setString(1, username);
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (rs.next()) {
+                int userId = rs.getInt("id");
+                String role = rs.getString("role");
+
+                // Remove from the role-specific table first
+                if (role.equals("dispatcher")) {
+                    PreparedStatement del = conn.prepareStatement("DELETE FROM dispatchers WHERE user_id = ?");
+                    del.setInt(1, userId);
+                    del.executeUpdate();
+                } else if (role.equals("delivery")) {
+                    PreparedStatement del = conn.prepareStatement("DELETE FROM delivery_personnel WHERE user_id = ?");
+                    del.setInt(1, userId);
+                    del.executeUpdate();
+                }
+
+                // Remove from users table
+                PreparedStatement delUser = conn.prepareStatement("DELETE FROM users WHERE id = ?");
+                delUser.setInt(1, userId);
+                delUser.executeUpdate();
+
+                System.out.println("User removed successfully.");
+                return true;
+
+            } else {
+                System.out.println("User not found.");
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error removing user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Updates the password policy
+    public boolean updatePasswordPolicy(int minLength, int minUppercase, int minLowercase,
+                                        int minDigits, int minSpecial, int maxLoginAttempts) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            String sql = "UPDATE password_policy SET " +
+                         "min_length = ?, min_uppercase = ?, min_lowercase = ?, " +
+                         "min_digits = ?, min_special = ?, max_login_attempts = ? " +
+                         "WHERE id = 1";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, minLength);
+            stmt.setInt(2, minUppercase);
+            stmt.setInt(3, minLowercase);
+            stmt.setInt(4, minDigits);
+            stmt.setInt(5, minSpecial);
+            stmt.setInt(6, maxLoginAttempts);
+            stmt.executeUpdate();
+
+            System.out.println("Password policy updated successfully.");
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating policy: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Displays the current password policy
+    public void viewPasswordPolicy() {
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            String sql = "SELECT * FROM password_policy WHERE id = 1";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("\n--- Current Password Policy ---");
+                System.out.println("Minimum Length:            " + rs.getInt("min_length"));
+                System.out.println("Minimum Uppercase Letters: " + rs.getInt("min_uppercase"));
+                System.out.println("Minimum Lowercase Letters: " + rs.getInt("min_lowercase"));
+                System.out.println("Minimum Digits:            " + rs.getInt("min_digits"));
+                System.out.println("Minimum Special Characters:" + rs.getInt("min_special"));
+                System.out.println("Max Login Attempts:        " + rs.getInt("max_login_attempts"));
+                System.out.println("--------------------------------");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error viewing policy: " + e.getMessage());
+        }
+    }
+
+    // Lists all users in the system
+    public void viewAllUsers() {
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            String sql = "SELECT id, username, role, is_locked FROM users";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            System.out.println("\n--- All Users ---");
+            while (rs.next()) {
+                System.out.println("ID: "       + rs.getInt("id") +
+                                   " | Username: " + rs.getString("username") +
+                                   " | Role: "     + rs.getString("role") +
+                                   " | Locked: "   + (rs.getInt("is_locked") == 1 ? "Yes" : "No"));
+            }
+            System.out.println("-----------------");
+
+        } catch (SQLException e) {
+            System.out.println("Error viewing users: " + e.getMessage());
+        }
+    }
+}
