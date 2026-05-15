@@ -5,26 +5,24 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
 
-// DatabaseManager handles the connection to the SQLite database
-// and creates all the tables if they don't already exist
 public class DatabaseManager {
 
-    // The database file will be created in the project root folder
-    private static final String DB_URL = "jdbc:sqlite:shiptrack.db";
+    // Default database — can be overridden for testing
+    private static String DB_URL = "jdbc:sqlite:shiptrack.db";
 
-    // Returns a connection to the database
-public static Connection getConnection() throws SQLException {
-    Connection conn = DriverManager.getConnection(DB_URL);
-    // Tells SQLite to wait up to 5 seconds if database is busy
-    conn.createStatement().execute("PRAGMA journal_mode=WAL");
-    return conn;
-}
-    // Creates all tables when the application starts
+    // Allows tests to set a different database URL
+    public static void setDbUrl(String url) {
+        DB_URL = url;
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL);
+    }
+
     public static void initializeDatabase() {
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
 
-            // Users table — stores login info for all user types
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -36,7 +34,6 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Customers table — stores customer personal info
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS customers (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -48,7 +45,6 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Dispatchers table — stores dispatcher personal info
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS dispatchers (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -60,7 +56,6 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Delivery personnel table — stores delivery person personal info
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS delivery_personnel (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -72,7 +67,6 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Shipments table — stores all package delivery requests
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS shipments (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -86,7 +80,6 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Password policy table — admin sets rules for password strength
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS password_policy (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -99,20 +92,18 @@ public static Connection getConnection() throws SQLException {
                 ")"
             );
 
-            // Insert default password policy if none exists
             stmt.execute(
                 "INSERT OR IGNORE INTO password_policy " +
                 "(id, min_length, min_uppercase, min_lowercase, min_digits, min_special, max_login_attempts) " +
                 "VALUES (1, 8, 1, 1, 1, 1, 3)"
             );
 
-// Admin account — created only if it doesn't already exist
-// Password is hashed at runtime using BCrypt
-String adminHash = org.mindrot.jbcrypt.BCrypt.hashpw("Admin@1234", org.mindrot.jbcrypt.BCrypt.gensalt());
-stmt.execute(
-    "INSERT OR IGNORE INTO users (id, username, password, role, is_locked, failed_attempts) " +
-    "VALUES (1, 'admin', '" + adminHash + "', 'admin', 0, 0)"
-);
+            String adminHash = org.mindrot.jbcrypt.BCrypt.hashpw("Admin@1234", org.mindrot.jbcrypt.BCrypt.gensalt());
+            stmt.execute(
+                "INSERT OR IGNORE INTO users (id, username, password, role, is_locked, failed_attempts) " +
+                "VALUES (1, 'admin', '" + adminHash + "', 'admin', 0, 0)"
+            );
+
             System.out.println("Database initialized successfully.");
 
         } catch (SQLException e) {
