@@ -65,22 +65,22 @@ public class CustomerMenu {
 
     // Displays the customer's personal info from the database
     private void viewPersonalInfo(User customer) {
-        try (Connection conn = DatabaseManager.getConnection()) {
-
-            String sql = "SELECT * FROM customers WHERE user_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        String sql = "SELECT * FROM customers WHERE user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
             stmt.setInt(1, customer.getId());
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                System.out.println("\n--- Your Personal Info ---");
-                System.out.println("Username:       " + customer.getUsername());
-                System.out.println("Full Name:      " + rs.getString("full_name"));
-                System.out.println("ID Number:      " + rs.getString("id_number"));
-                System.out.println("Contact Number: " + rs.getString("contact_number"));
-                System.out.println("--------------------------");
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("\n--- Your Personal Info ---");
+                    System.out.println("Username:       " + customer.getUsername());
+                    System.out.println("Full Name:      " + rs.getString("full_name"));
+                    System.out.println("ID Number:      " + rs.getString("id_number"));
+                    System.out.println("Contact Number: " + rs.getString("contact_number"));
+                    System.out.println("--------------------------");
+                }
             }
-
         } catch (SQLException e) {
             System.out.println("Error viewing info: " + e.getMessage());
         }
@@ -94,10 +94,10 @@ public class CustomerMenu {
         System.out.print("New Contact Number: ");
         String contactNumber = scanner.nextLine();
 
-        try (Connection conn = DatabaseManager.getConnection()) {
+        String sql = "UPDATE customers SET full_name = ?, contact_number = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String sql = "UPDATE customers SET full_name = ?, contact_number = ? WHERE user_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, fullName);
             stmt.setString(2, contactNumber);
             stmt.setInt(3, customer.getId());

@@ -129,10 +129,10 @@ public class AdminMenu {
         System.out.print("Enter action (lock / unlock): ");
         String action = scanner.nextLine();
 
-        if (action.equals("lock")) {
+        if ("lock".equals(action)) {
             authService.lockAccount(username);
             System.out.println("Account locked.");
-        } else if (action.equals("unlock")) {
+        } else if ("unlock".equals(action)) {
             authService.unlockAccount(username);
         } else {
             System.out.println("Invalid action.");

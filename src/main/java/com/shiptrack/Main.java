@@ -12,19 +12,24 @@ import java.util.Scanner;
 
 // Main is the entry point of the ShipTrack application
 // It initializes the database and shows the main login menu
-public class Main {
+public final class Main {
+
+    // Private constructor to prevent instantiation (Utility Class)
+    private Main() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     public static void main(String[] args) {
 
         // Initialize the database and create tables
         DatabaseManager.initializeDatabase();
 
-        Scanner scanner = new Scanner(System.in);
         AuthService authService = new AuthService();
 
         int choice = 0;
 
-        while (choice != 3) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            while (choice != 3) {
             System.out.println("\n===== Welcome to ShipTrack =====");
             System.out.println("1. Login");
             System.out.println("2. Register as Customer");
@@ -46,13 +51,13 @@ public class Main {
                     System.out.println("\nWelcome, " + user.getUsername() + "! Role: " + user.getRole());
 
                     // Direct user to the correct menu based on their role
-                    if (user.getRole().equals("admin")) {
+                    if ("admin".equals(user.getRole())) {
                         new AdminMenu(scanner).show(user);
-                    } else if (user.getRole().equals("customer")) {
+                    } else if ("customer".equals(user.getRole())) {
                         new CustomerMenu(scanner).show(user);
-                    } else if (user.getRole().equals("dispatcher")) {
+                    } else if ("dispatcher".equals(user.getRole())) {
                         new DispatcherMenu(scanner).show(user);
-                    } else if (user.getRole().equals("delivery")) {
+                    } else if ("delivery".equals(user.getRole())) {
                         new DeliveryMenu(scanner).show(user);
                     }
                 }
@@ -78,8 +83,7 @@ public class Main {
             } else {
                 System.out.println("Invalid choice.");
             }
-        }
-
-        scanner.close();
+            } // end while
+        } // end try-with-resources
     }
 }

@@ -20,9 +20,9 @@ public class AuthService {
 
             // First check if the user exists
             String sql = "SELECT * FROM users WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                stmt.setString(1, username);
 
             if (rs.next()) {
                 boolean isLocked = rs.getInt("is_locked") == 1;
@@ -66,6 +66,7 @@ public class AuthService {
                 System.out.println("Username not found.");
                 return null;
             }
+            } // end try-with-resources for stmt and rs
 
         } catch (SQLException e) {
             System.out.println("Login error: " + e.getMessage());
@@ -88,23 +89,26 @@ public class AuthService {
 
             // Insert into users table
             String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'customer')";
-            PreparedStatement userStmt = conn.prepareStatement(userSql);
-            userStmt.setString(1, username);
-            userStmt.setString(2, hashedPassword);
-            userStmt.executeUpdate();
+            try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
+                userStmt.setString(1, username);
+                userStmt.setString(2, hashedPassword);
+                userStmt.executeUpdate();
 
-            // Get the new user's ID
-            ResultSet generatedKeys = userStmt.getGeneratedKeys();
-            int userId = generatedKeys.getInt(1);
+                // Get the new user's ID
+                try (ResultSet generatedKeys = userStmt.getGeneratedKeys()) {
+                    int userId = generatedKeys.getInt(1);
 
-            // Insert into customers table
-            String custSql = "INSERT INTO customers (user_id, full_name, id_number, contact_number) VALUES (?, ?, ?, ?)";
-            PreparedStatement custStmt = conn.prepareStatement(custSql);
-            custStmt.setInt(1, userId);
-            custStmt.setString(2, fullName);
-            custStmt.setString(3, idNumber);
-            custStmt.setString(4, contactNumber);
-            custStmt.executeUpdate();
+                    // Insert into customers table
+                    String custSql = "INSERT INTO customers (user_id, full_name, id_number, contact_number) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement custStmt = conn.prepareStatement(custSql)) {
+                        custStmt.setInt(1, userId);
+                        custStmt.setString(2, fullName);
+                        custStmt.setString(3, idNumber);
+                        custStmt.setString(4, contactNumber);
+                        custStmt.executeUpdate();
+                    }
+                }
+            }
 
             System.out.println("Customer registered successfully.");
             return true;
@@ -120,8 +124,8 @@ public class AuthService {
         try (Connection conn = DatabaseManager.getConnection()) {
 
             String sql = "SELECT * FROM password_policy WHERE id = 1";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 int minLength    = rs.getInt("min_length");
@@ -131,12 +135,15 @@ public class AuthService {
                 int minSpecial   = rs.getInt("min_special");
 
                 // Count each character type in the password
-                int uppercase = 0, lowercase = 0, digits = 0, special = 0;
+                int uppercase = 0;
+                int lowercase = 0;
+                int digits = 0;
+                int special = 0;
                 for (char c : password.toCharArray()) {
-                    if (Character.isUpperCase(c)) uppercase++;
-                    else if (Character.isLowerCase(c)) lowercase++;
-                    else if (Character.isDigit(c)) digits++;
-                    else special++;
+                    if (Character.isUpperCase(c)) { uppercase++; }
+                    else if (Character.isLowerCase(c)) { lowercase++; }
+                    else if (Character.isDigit(c)) { digits++; }
+                    else { special++; }
                 }
 
                 // Check all conditions
@@ -162,6 +169,7 @@ public class AuthService {
                 }
             }
 
+            } // end try-with-resources for stmt and rs
             return true;
 
         } catch (SQLException e) {
@@ -174,10 +182,11 @@ public class AuthService {
     public int getMaxLoginAttempts() {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "SELECT max_login_attempts FROM password_policy WHERE id = 1";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("max_login_attempts");
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("max_login_attempts");
+                }
             }
         } catch (SQLException e) {
             System.out.println("Error getting max attempts: " + e.getMessage());
@@ -189,9 +198,10 @@ public class AuthService {
     private void resetFailedAttempts(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET failed_attempts = 0 WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.executeUpdate();
+            }
         } catch (SQLException e) {
             System.out.println("Error resetting attempts: " + e.getMessage());
         }
@@ -201,10 +211,11 @@ public class AuthService {
     private void updateFailedAttempts(String username, int attempts) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET failed_attempts = ? WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, attempts);
-            stmt.setString(2, username);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, attempts);
+                stmt.setString(2, username);
+                stmt.executeUpdate();
+            }
         } catch (SQLException e) {
             System.out.println("Error updating attempts: " + e.getMessage());
         }
@@ -214,9 +225,10 @@ public class AuthService {
     public void lockAccount(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET is_locked = 1 WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.executeUpdate();
+            }
         } catch (SQLException e) {
             System.out.println("Error locking account: " + e.getMessage());
         }
@@ -226,9 +238,10 @@ public class AuthService {
     public void unlockAccount(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET is_locked = 0, failed_attempts = 0 WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.executeUpdate();
+            }
             System.out.println("Account unlocked successfully.");
         } catch (SQLException e) {
             System.out.println("Error unlocking account: " + e.getMessage());

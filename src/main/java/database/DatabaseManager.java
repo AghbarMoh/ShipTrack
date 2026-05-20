@@ -5,7 +5,12 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
 
-public class DatabaseManager {
+public final class DatabaseManager {
+
+    // Private constructor to prevent instantiation (Utility Class)
+    private DatabaseManager() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
     // Default database — can be overridden for testing
     private static String DB_URL = "jdbc:sqlite:shiptrack.db";

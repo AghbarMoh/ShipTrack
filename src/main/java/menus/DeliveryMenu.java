@@ -78,22 +78,23 @@ public class DeliveryMenu {
 
     // Displays the delivery personnel's personal info
     private void viewPersonalInfo(User deliveryPersonnel) {
-        try (Connection conn = DatabaseManager.getConnection()) {
+        String sql = "SELECT * FROM delivery_personnel WHERE user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String sql = "SELECT * FROM delivery_personnel WHERE user_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, deliveryPersonnel.getId());
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                System.out.println("\n--- Your Personal Info ---");
-                System.out.println("Username:       " + deliveryPersonnel.getUsername());
-                System.out.println("Full Name:      " + rs.getString("full_name"));
-                System.out.println("ID Number:      " + rs.getString("id_number"));
-                System.out.println("Contact Number: " + rs.getString("contact_number"));
-                System.out.println("--------------------------");
-            } else {
-                System.out.println("No personal info found.");
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("\n--- Your Personal Info ---");
+                    System.out.println("Username:       " + deliveryPersonnel.getUsername());
+                    System.out.println("Full Name:      " + rs.getString("full_name"));
+                    System.out.println("ID Number:      " + rs.getString("id_number"));
+                    System.out.println("Contact Number: " + rs.getString("contact_number"));
+                    System.out.println("--------------------------");
+                } else {
+                    System.out.println("No personal info found.");
+                }
             }
 
         } catch (SQLException e) {

@@ -95,22 +95,23 @@ public class DispatcherMenu {
 
     // Displays the dispatcher's personal info
     private void viewPersonalInfo(User dispatcher) {
-        try (Connection conn = DatabaseManager.getConnection()) {
+        String sql = "SELECT * FROM dispatchers WHERE user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String sql = "SELECT * FROM dispatchers WHERE user_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, dispatcher.getId());
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                System.out.println("\n--- Your Personal Info ---");
-                System.out.println("Username:       " + dispatcher.getUsername());
-                System.out.println("Full Name:      " + rs.getString("full_name"));
-                System.out.println("ID Number:      " + rs.getString("id_number"));
-                System.out.println("Contact Number: " + rs.getString("contact_number"));
-                System.out.println("--------------------------");
-            } else {
-                System.out.println("No personal info found.");
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("\n--- Your Personal Info ---");
+                    System.out.println("Username:       " + dispatcher.getUsername());
+                    System.out.println("Full Name:      " + rs.getString("full_name"));
+                    System.out.println("ID Number:      " + rs.getString("id_number"));
+                    System.out.println("Contact Number: " + rs.getString("contact_number"));
+                    System.out.println("--------------------------");
+                } else {
+                    System.out.println("No personal info found.");
+                }
             }
 
         } catch (SQLException e) {
@@ -126,10 +127,10 @@ public class DispatcherMenu {
         System.out.print("New Contact Number: ");
         String contactNumber = scanner.nextLine();
 
-        try (Connection conn = DatabaseManager.getConnection()) {
+        String sql = "UPDATE dispatchers SET full_name = ?, contact_number = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String sql = "UPDATE dispatchers SET full_name = ?, contact_number = ? WHERE user_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, fullName);
             stmt.setString(2, contactNumber);
             stmt.setInt(3, dispatcher.getId());
