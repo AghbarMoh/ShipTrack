@@ -39,6 +39,13 @@
       <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
+     <!-- Jazzer API -->
+    <dependency>
+      <groupId>com.code-intelligence</groupId>
+      <artifactId>jazzer-api</artifactId>
+      <version>0.24.0</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 

@@ -21,8 +21,14 @@ public final class DatabaseManager {
     }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL);
+    try {
+        Class.forName("org.sqlite.JDBC");
+    } catch (ClassNotFoundException e) {
+        throw new SQLException("SQLite JDBC driver not found", e);
     }
+
+    return DriverManager.getConnection(DB_URL);
+}
 
     public static void initializeDatabase() {
         try (Connection conn = getConnection();

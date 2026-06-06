@@ -16,63 +16,74 @@ public class AuthService {
     // Logs in a user by checking username and password
     // Returns the User object if successful, null if failed
     public User login(String username, String password) {
-        try (Connection conn = DatabaseManager.getConnection()) {
+    try (Connection conn = DatabaseManager.getConnection()) {
 
-            // First check if the user exists
-            String sql = "SELECT * FROM users WHERE username = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                stmt.setString(1, username);
+        String sql = "SELECT * FROM users WHERE username = ?";
 
-            if (rs.next()) {
-                boolean isLocked = rs.getInt("is_locked") == 1;
-                int failedAttempts = rs.getInt("failed_attempts");
-                int maxAttempts = getMaxLoginAttempts();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                // Check if account is locked
-                if (isLocked) {
-                    System.out.println("Account is locked. Please contact the admin.");
-                    return null;
-                }
+            stmt.setString(1, username);
 
-                // Check if password matches using BCrypt
-                String storedHash = rs.getString("password");
-                if (BCrypt.checkpw(password, storedHash)) {
-                    // Password correct — reset failed attempts
-                    resetFailedAttempts(username);
-                    return new User(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("role"),
-                        isLocked,
-                        failedAttempts
-                    );
-                } else {
-                    // Password wrong — increment failed attempts
-                    failedAttempts++;
-                    updateFailedAttempts(username, failedAttempts);
+            try (ResultSet rs = stmt.executeQuery()) {
 
-                    // Lock account if max attempts reached
-                    if (failedAttempts >= maxAttempts) {
-                        lockAccount(username);
-                        System.out.println("Too many failed attempts. Account is now locked.");
-                    } else {
-                        System.out.println("Incorrect password. Attempts: " + failedAttempts + "/" + maxAttempts);
+                if (rs.next()) {
+
+                    boolean isLocked = rs.getInt("is_locked") == 1;
+                    int failedAttempts = rs.getInt("failed_attempts");
+                    int maxAttempts = getMaxLoginAttempts();
+
+                    if (isLocked) {
+                        System.out.println("Account is locked. Please contact the admin.");
+                        return null;
                     }
-                    return null;
-                }
-            } else {
-                System.out.println("Username not found.");
-                return null;
-            }
-            } // end try-with-resources for stmt and rs
 
-        } catch (SQLException e) {
-            System.out.println("Login error: " + e.getMessage());
-            return null;
+                    String storedHash = rs.getString("password");
+
+                    if (BCrypt.checkpw(password, storedHash)) {
+
+                        resetFailedAttempts(username);
+
+                        return new User(
+                                rs.getInt("id"),
+                                rs.getString("username"),
+                                rs.getString("password"),
+                                rs.getString("role"),
+                                isLocked,
+                                failedAttempts
+                        );
+
+                    } else {
+
+                        failedAttempts++;
+                        updateFailedAttempts(username, failedAttempts);
+
+                        if (failedAttempts >= maxAttempts) {
+                            lockAccount(username);
+                            System.out.println("Too many failed attempts. Account is now locked.");
+                        } else {
+                            System.out.println("Incorrect password. Attempts: "
+                                    + failedAttempts + "/" + maxAttempts);
+                        }
+
+                        return null;
+                    }
+
+                } else {
+
+                    System.out.println("Username not found.");
+                    return null;
+
+                }
+            }
         }
+
+    } catch (SQLException e) {
+
+        System.out.println("Login error: " + e.getMessage());
+        return null;
+
     }
+}
 
     // Registers a new customer in the system
     public boolean registerCustomer(String username, String password,
