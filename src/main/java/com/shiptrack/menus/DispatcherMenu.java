@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-// DispatcherMenu displays the dispatcher console and handles dispatcher actions
 public class DispatcherMenu {
 
     private Scanner scanner;
@@ -21,7 +20,6 @@ public class DispatcherMenu {
         this.shipmentService = new ShipmentService();
     }
 
-    // Shows the dispatcher menu and handles user input
     public void show(User dispatcher) {
         int choice = 0;
 
@@ -55,7 +53,6 @@ public class DispatcherMenu {
         }
     }
 
-    // Assigns a shipment to a delivery person
     private void assignDelivery() {
         System.out.println("\n--- Assign Delivery ---");
         System.out.print("Enter Shipment ID: ");
@@ -66,7 +63,6 @@ public class DispatcherMenu {
         shipmentService.assignDelivery(shipmentId, deliveryPersonnelId);
     }
 
-    // Updates the status of a shipment
     private void updateDeliveryStatus() {
         System.out.println("\n--- Update Delivery Status ---");
         System.out.print("Enter Shipment ID: ");
@@ -93,7 +89,6 @@ public class DispatcherMenu {
         shipmentService.updateShipmentStatus(shipmentId, status);
     }
 
-    // Displays the dispatcher's personal info
     private void viewPersonalInfo(User dispatcher) {
         String sql = "SELECT * FROM dispatchers WHERE user_id = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -119,7 +114,6 @@ public class DispatcherMenu {
         }
     }
 
-    // Updates the dispatcher's personal info
     private void updatePersonalInfo(User dispatcher) {
         System.out.println("\n--- Update Personal Info ---");
         System.out.print("New Full Name: ");

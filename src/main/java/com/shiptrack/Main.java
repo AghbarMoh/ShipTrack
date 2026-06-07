@@ -10,18 +10,14 @@ import com.shiptrack.services.AuthService;
 
 import java.util.Scanner;
 
-// Main is the entry point of the ShipTrack application
-// It initializes the database and shows the main login menu
 public final class Main {
 
-    // Private constructor to prevent instantiation (Utility Class)
     private Main() {
         throw new UnsupportedOperationException("Utility class");
     }
 
     public static void main(String[] args) {
 
-        // Initialize the database and create tables
         DatabaseManager.initializeDatabase();
 
         AuthService authService = new AuthService();
@@ -39,7 +35,6 @@ public final class Main {
             choice = Integer.parseInt(scanner.nextLine());
 
             if (choice == 1) {
-                // Login flow
                 System.out.print("Username: ");
                 String username = scanner.nextLine();
                 System.out.print("Password: ");
@@ -50,7 +45,6 @@ public final class Main {
                 if (user != null) {
                     System.out.println("\nWelcome, " + user.getUsername() + "! Role: " + user.getRole());
 
-                    // Direct user to the correct menu based on their role
                     if ("admin".equals(user.getRole())) {
                         new AdminMenu(scanner).show(user);
                     } else if ("customer".equals(user.getRole())) {
@@ -63,7 +57,6 @@ public final class Main {
                 }
 
             } else if (choice == 2) {
-                // Customer registration flow
                 System.out.println("\n--- Register as Customer ---");
                 System.out.print("Username: ");
                 String username = scanner.nextLine();
@@ -83,7 +76,7 @@ public final class Main {
             } else {
                 System.out.println("Invalid choice.");
             }
-            } // end while
-        } // end try-with-resources
+            } 
+        } 
     }
 }

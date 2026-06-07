@@ -8,26 +8,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-// AdminService handles all admin-related operations
-// including registering users, removing users, and managing password policy
 public class AdminService {
 
     private AuthService authService = new AuthService();
 
-    // Registers a new dispatcher in the system
     public boolean registerDispatcher(String username, String password,
                                       String fullName, String idNumber, String contactNumber) {
-        // Validate password against policy
         if (!authService.isPasswordValid(password)) {
             return false;
         }
 
         try (Connection conn = DatabaseManager.getConnection()) {
 
-            // Hash the password before storing
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-            // Insert into users table
             String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'dispatcher')";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
                 userStmt.setString(1, username);
@@ -57,20 +51,16 @@ public class AdminService {
         }
     }
 
-    // Registers a new delivery person in the system
     public boolean registerDeliveryPersonnel(String username, String password,
                                              String fullName, String idNumber, String contactNumber) {
-        // Validate password against policy
         if (!authService.isPasswordValid(password)) {
             return false;
         }
 
         try (Connection conn = DatabaseManager.getConnection()) {
 
-            // Hash the password before storing
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-            // Insert into users table
             String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'delivery')";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
                 userStmt.setString(1, username);
@@ -100,11 +90,9 @@ public class AdminService {
         }
     }
 
-    // Removes a user from the system by username
     public boolean removeUser(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
 
-            // Get user id and role first
             String selectSql = "SELECT id, role FROM users WHERE username = ?";
             try (PreparedStatement selectStmt = conn.prepareStatement(selectSql);
                  ResultSet rs = selectStmt.executeQuery()) {
@@ -146,7 +134,6 @@ public class AdminService {
         }
     }
 
-    // Updates the password policy
     public boolean updatePasswordPolicy(int minLength, int minUppercase, int minLowercase,
                                         int minDigits, int minSpecial, int maxLoginAttempts) {
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -174,7 +161,6 @@ public class AdminService {
         }
     }
 
-    // Displays the current password policy
     public void viewPasswordPolicy() {
         try (Connection conn = DatabaseManager.getConnection()) {
 
@@ -192,14 +178,13 @@ public class AdminService {
                 System.out.println("Max Login Attempts:        " + rs.getInt("max_login_attempts"));
                 System.out.println("--------------------------------");
             }
-            } // end try-with-resources
+            } 
 
         } catch (SQLException e) {
             System.out.println("Error viewing policy: " + e.getMessage());
         }
     }
 
-    // Lists all users in the system
     public void viewAllUsers() {
         try (Connection conn = DatabaseManager.getConnection()) {
 
@@ -215,7 +200,7 @@ public class AdminService {
                                    " | Locked: "   + (rs.getInt("is_locked") == 1 ? "Yes" : "No"));
             }
             System.out.println("-----------------");
-            } // end try-with-resources
+            } 
 
         } catch (SQLException e) {
             System.out.println("Error viewing users: " + e.getMessage());

@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-// CustomerMenu displays the customer console and handles customer actions
 public class CustomerMenu {
 
     private Scanner scanner;
@@ -21,7 +20,6 @@ public class CustomerMenu {
         this.shipmentService = new ShipmentService();
     }
 
-    // Shows the customer menu and handles user input
     public void show(User customer) {
         int choice = 0;
 
@@ -52,7 +50,6 @@ public class CustomerMenu {
         }
     }
 
-    // Collects shipment details and creates a new shipment
     private void createShipment(User customer) {
         System.out.println("\n--- Create Shipment ---");
         System.out.print("Origin (pickup location): ");
@@ -63,7 +60,6 @@ public class CustomerMenu {
         shipmentService.createShipment(customer.getId(), origin, destination);
     }
 
-    // Displays the customer's personal info from the database
     private void viewPersonalInfo(User customer) {
         String sql = "SELECT * FROM customers WHERE user_id = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -86,7 +82,6 @@ public class CustomerMenu {
         }
     }
 
-    // Updates the customer's personal info in the database
     private void updatePersonalInfo(User customer) {
         System.out.println("\n--- Update Personal Info ---");
         System.out.print("New Full Name: ");

@@ -7,11 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-// ShipmentService handles all shipment-related operations
-// including creating, tracking, and updating shipments
 public class ShipmentService {
 
-    // Creates a new shipment request for a customer
     public boolean createShipment(int customerId, String origin, String destination) {
         String sql = "INSERT INTO shipments (customer_id, origin, destination, status) " +
                      "VALUES (?, ?, ?, 'pending')";
@@ -32,7 +29,6 @@ public class ShipmentService {
         }
     }
 
-    // Shows all shipments belonging to a specific customer
     public void viewCustomerShipments(int customerId) {
         String sql = "SELECT * FROM shipments WHERE customer_id = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -62,7 +58,6 @@ public class ShipmentService {
         }
     }
 
-    // Shows all shipments assigned to a specific delivery person
     public void viewAssignedDeliveries(int deliveryPersonnelId) {
         String sql = "SELECT * FROM shipments WHERE delivery_personnel_id = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -91,7 +86,6 @@ public class ShipmentService {
         }
     }
 
-    // Shows all pending shipments — used by dispatcher
     public void viewAllShipments() {
         String sql = "SELECT * FROM shipments";
         try (Connection conn = DatabaseManager.getConnection();
@@ -119,7 +113,6 @@ public class ShipmentService {
         }
     }
 
-    // Assigns a shipment to a delivery person — used by dispatcher
     public boolean assignDelivery(int shipmentId, int deliveryPersonnelId) {
         String sql = "UPDATE shipments SET delivery_personnel_id = ?, status = 'in transit' " +
                      "WHERE id = ?";
@@ -139,8 +132,6 @@ public class ShipmentService {
         }
     }
 
-    // Updates the status of a shipment
-    // Used by both dispatcher and delivery personnel
     public boolean updateShipmentStatus(int shipmentId, String status) {
         String sql = "UPDATE shipments SET status = ? WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection();

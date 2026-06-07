@@ -7,15 +7,15 @@ import java.sql.SQLException;
 
 public final class DatabaseManager {
 
-    // Private constructor to prevent instantiation (Utility Class)
+    
     private DatabaseManager() {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    // Default database — can be overridden for testing
+    
     private static String DB_URL = "jdbc:sqlite:shiptrack.db";
 
-    // Allows tests to set a different database URL
+    
     public static void setDbUrl(String url) {
         DB_URL = url;
     }

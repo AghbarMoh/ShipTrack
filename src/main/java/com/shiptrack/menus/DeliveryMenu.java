@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-// DeliveryMenu displays the delivery personnel console and handles their actions
 public class DeliveryMenu {
 
     private Scanner scanner;
@@ -21,7 +20,6 @@ public class DeliveryMenu {
         this.shipmentService = new ShipmentService();
     }
 
-    // Shows the delivery personnel menu and handles user input
     public void show(User deliveryPersonnel) {
         int choice = 0;
 
@@ -49,7 +47,6 @@ public class DeliveryMenu {
         }
     }
 
-    // Updates the status of an assigned delivery
     private void updateDeliveryStatus() {
         System.out.println("\n--- Update Delivery Status ---");
         System.out.print("Enter Shipment ID: ");
@@ -76,7 +73,6 @@ public class DeliveryMenu {
         shipmentService.updateShipmentStatus(shipmentId, status);
     }
 
-    // Displays the delivery personnel's personal info
     private void viewPersonalInfo(User deliveryPersonnel) {
         String sql = "SELECT * FROM delivery_personnel WHERE user_id = ?";
         try (Connection conn = DatabaseManager.getConnection();

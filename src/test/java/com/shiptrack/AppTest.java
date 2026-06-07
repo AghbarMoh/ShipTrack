@@ -7,29 +7,22 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-// AppTest contains unit tests for the ShipTrack application
-// We test 2 functions: login() and isPasswordValid()
 public class AppTest {
 
     private static AuthService authService;
 
-    // Runs once before all tests — sets up a clean test database
     @BeforeAll
     public static void setUp() throws Exception {
 
-        // Delete old test database if it exists
         java.io.File testDb = new java.io.File("test_shiptrack.db");
         if (testDb.exists()) {
             testDb.delete();
         }
 
-        // Point DatabaseManager to the test database
         DatabaseManager.setDbUrl("jdbc:sqlite:test_shiptrack.db");
 
-        // Initialize all tables and default data
         DatabaseManager.initializeDatabase();
 
-        // Insert a locked account for testing
         try (java.sql.Connection conn = DatabaseManager.getConnection()) {
             String dispHash = org.mindrot.jbcrypt.BCrypt.hashpw("Dispatch@1234", org.mindrot.jbcrypt.BCrypt.gensalt());
             conn.createStatement().execute(
@@ -41,7 +34,6 @@ public class AppTest {
         authService = new AuthService();
     }
 
-    // ==================== Function 1: login() ====================
 
     // Test 1 — Correct credentials should return a User object
     @Test

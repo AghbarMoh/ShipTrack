@@ -9,12 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-// AuthService handles all authentication-related operations
-// including login, registration, and password validation
 public class AuthService {
 
-    // Logs in a user by checking username and password
-    // Returns the User object if successful, null if failed
     public User login(String username, String password) {
     try (Connection conn = DatabaseManager.getConnection()) {
 
@@ -85,31 +81,25 @@ public class AuthService {
     }
 }
 
-    // Registers a new customer in the system
     public boolean registerCustomer(String username, String password,
                                     String fullName, String idNumber, String contactNumber) {
-        // Validate password against policy before saving
         if (!isPasswordValid(password)) {
             return false;
         }
 
         try (Connection conn = DatabaseManager.getConnection()) {
 
-            // Hash the password using BCrypt before storing
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-            // Insert into users table
             String userSql = "INSERT INTO users (username, password, role) VALUES (?, ?, 'customer')";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
                 userStmt.setString(1, username);
                 userStmt.setString(2, hashedPassword);
                 userStmt.executeUpdate();
 
-                // Get the new user's ID
                 try (ResultSet generatedKeys = userStmt.getGeneratedKeys()) {
                     int userId = generatedKeys.getInt(1);
 
-                    // Insert into customers table
                     String custSql = "INSERT INTO customers (user_id, full_name, id_number, contact_number) VALUES (?, ?, ?, ?)";
                     try (PreparedStatement custStmt = conn.prepareStatement(custSql)) {
                         custStmt.setInt(1, userId);
@@ -130,7 +120,6 @@ public class AuthService {
         }
     }
 
-    // Checks if a password meets the policy requirements
     public boolean isPasswordValid(String password) {
         try (Connection conn = DatabaseManager.getConnection()) {
 
@@ -145,7 +134,6 @@ public class AuthService {
                 int minDigits    = rs.getInt("min_digits");
                 int minSpecial   = rs.getInt("min_special");
 
-                // Count each character type in the password
                 int uppercase = 0;
                 int lowercase = 0;
                 int digits = 0;
@@ -157,7 +145,6 @@ public class AuthService {
                     else { special++; }
                 }
 
-                // Check all conditions
                 if (password.length() < minLength) {
                     System.out.println("Password too short. Minimum length: " + minLength);
                     return false;
@@ -180,7 +167,7 @@ public class AuthService {
                 }
             }
 
-            } // end try-with-resources for stmt and rs
+            } 
             return true;
 
         } catch (SQLException e) {
@@ -189,7 +176,6 @@ public class AuthService {
         }
     }
 
-    // Gets the maximum number of login attempts from the policy
     public int getMaxLoginAttempts() {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "SELECT max_login_attempts FROM password_policy WHERE id = 1";
@@ -202,10 +188,9 @@ public class AuthService {
         } catch (SQLException e) {
             System.out.println("Error getting max attempts: " + e.getMessage());
         }
-        return 3; // default value
+        return 3; 
     }
 
-    // Resets failed attempts back to 0 after successful login
     private void resetFailedAttempts(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET failed_attempts = 0 WHERE username = ?";
@@ -218,7 +203,6 @@ public class AuthService {
         }
     }
 
-    // Updates the failed attempts count for a user
     private void updateFailedAttempts(String username, int attempts) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET failed_attempts = ? WHERE username = ?";
@@ -232,7 +216,6 @@ public class AuthService {
         }
     }
 
-    // Locks a user account
     public void lockAccount(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET is_locked = 1 WHERE username = ?";
@@ -245,7 +228,6 @@ public class AuthService {
         }
     }
 
-    // Unlocks a user account
     public void unlockAccount(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE users SET is_locked = 0, failed_attempts = 0 WHERE username = ?";

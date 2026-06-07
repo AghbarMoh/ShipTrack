@@ -6,7 +6,7 @@ import com.shiptrack.services.AuthService;
 
 import java.util.Scanner;
 
-// AdminMenu displays the admin console and handles admin actions
+
 public class AdminMenu {
 
     private Scanner scanner;
@@ -19,7 +19,7 @@ public class AdminMenu {
         this.authService = new AuthService();
     }
 
-    // Shows the admin menu and handles user input
+    
     public void show(User admin) {
         int choice = 0;
 
@@ -59,7 +59,7 @@ public class AdminMenu {
         }
     }
 
-    // Collects dispatcher info and registers them
+    
     private void registerDispatcher() {
         System.out.println("\n--- Register Dispatcher ---");
         System.out.print("Username: ");
@@ -76,7 +76,7 @@ public class AdminMenu {
         adminService.registerDispatcher(username, password, fullName, idNumber, contactNumber);
     }
 
-    // Collects delivery personnel info and registers them
+    
     private void registerDeliveryPersonnel() {
         System.out.println("\n--- Register Delivery Personnel ---");
         System.out.print("Username: ");
@@ -93,7 +93,7 @@ public class AdminMenu {
         adminService.registerDeliveryPersonnel(username, password, fullName, idNumber, contactNumber);
     }
 
-    // Removes a user by username
+    
     private void removeUser() {
         System.out.println("\n--- Remove User ---");
         System.out.print("Enter username to remove: ");
@@ -101,7 +101,6 @@ public class AdminMenu {
         adminService.removeUser(username);
     }
 
-    // Updates the password policy
     private void updatePasswordPolicy() {
         System.out.println("\n--- Update Password Policy ---");
         System.out.print("Minimum length: ");
@@ -121,7 +120,7 @@ public class AdminMenu {
                                           minDigits, minSpecial, maxAttempts);
     }
 
-    // Locks or unlocks a user account
+    
     private void lockUnlockAccount() {
         System.out.println("\n--- Lock / Unlock Account ---");
         System.out.print("Enter username: ");
